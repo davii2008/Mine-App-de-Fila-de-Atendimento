@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="15">
+    <title>Fila de Atendimento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+    <div>
+        <h1>Fila de Atendimento</h1>
+        <p>Gerenciamento de clientes em tempo real</p>
+    </div>
+    <a class="btn secundario" href="{{ url_for('historico') }}">Histórico</a>
+</header>
+
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for categoria, mensagem in messages %}
+                <div class="alert {{ categoria }}">{{ mensagem }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <section class="card cadastro">
+        <h2>Adicionar cliente</h2>
+        <form action="{{ url_for('cadastrar') }}" method="POST">
+            <input type="text" name="nome" placeholder="Nome do cliente" required maxlength="100">
+
+            <select name="prioridade">
+                <option value="Normal">Normal</option>
+                <option value="Preferencial">Preferencial</option>
+            </select>
+
+            <button class="btn principal" type="submit">Entrar na fila</button>
+        </form>
+    </section>
+
+    <section class="acoes">
+        <a class="btn chamar" href="{{ url_for('chamar_proximo') }}">Chamar próximo</a>
+        <span class="atualizacao">Atualização automática a cada 15 segundos</span>
+    </section>
+
+    <div class="grid">
+        <section class="card">
+            <div class="titulo-secao">
+                <h2>Fila de espera</h2>
+                <span class="contador">{{ fila|length }}</span>
+            </div>
+
+            {% if fila %}
+                <div class="lista">
+                    {% for cliente in fila %}
+                        <div class="cliente">
+                            <div>
+                                <strong>#{{ cliente.id }} — {{ cliente.nome }}</strong>
+                                <span class="badge {{ 'preferencial' if cliente.prioridade == 'Preferencial' else 'normal' }}">
+                                    {{ cliente.prioridade }}
+                                </span>
+                            </div>
+
+                            <form action="{{ url_for('cancelar', id=cliente.id) }}" method="POST">
+                                <button class="btn cancelar" type="submit">Cancelar</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="vazio">Não há clientes aguardando.</p>
+            {% endif %}
+        </section>
+
+        <section class="card">
+            <div class="titulo-secao">
+                <h2>Em atendimento</h2>
+                <span class="contador">{{ em_atendimento|length }}</span>
+            </div>
+
+            {% if em_atendimento %}
+                {% for cliente in em_atendimento %}
+                    <div class="atendimento-atual">
+                        <span class="badge preferencial">{{ cliente.prioridade }}</span>
+                        <h3>{{ cliente.nome }}</h3>
+                        <p>Atendimento iniciado em {{ cliente.iniciado_em }}</p>
+
+                        <div class="botoes">
+                            <form action="{{ url_for('alterar_status', id=cliente.id) }}" method="POST">
+                                <input type="hidden" name="status" value="Concluído">
+                                <button class="btn concluir" type="submit">Concluir</button>
+                            </form>
+
+                            <form action="{{ url_for('cancelar', id=cliente.id) }}" method="POST">
+                                <button class="btn cancelar" type="submit">Cancelar</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="vazio">Nenhum atendimento em andamento.</p>
+            {% endif %}
+        </section>
+    </div>
+</main>
+
+<footer>
+    <p>Mini App de Fila de Atendimento • Python + Flask + SQLite</p>
+</footer>
+</body>
+</html>

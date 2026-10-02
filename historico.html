@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+    <div>
+        <h1>Histórico de Atendimentos</h1>
+        <p>Registros concluídos e cancelados</p>
+    </div>
+    <a class="btn secundario" href="{{ url_for('index') }}">Voltar à fila</a>
+</header>
+
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for categoria, mensagem in messages %}
+                <div class="alert {{ categoria }}">{{ mensagem }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <section class="card">
+        <div class="titulo-secao">
+            <h2>Registros</h2>
+            <a class="btn cancelar" href="{{ url_for('limpar_historico') }}">Limpar histórico</a>
+        </div>
+
+        {% if registros %}
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Prioridade</th>
+                            <th>Status</th>
+                            <th>Entrada</th>
+                            <th>Início</th>
+                            <th>Finalização</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registro in registros %}
+                        <tr>
+                            <td>#{{ registro.id }}</td>
+                            <td>{{ registro.nome }}</td>
+                            <td>{{ registro.prioridade }}</td>
+                            <td>
+                                <span class="status {{ 'concluido' if registro.status == 'Concluído' else 'cancelado' }}">
+                                    {{ registro.status }}
+                                </span>
+                            </td>
+                            <td>{{ registro.criado_em }}</td>
+                            <td>{{ registro.iniciado_em or '-' }}</td>
+                            <td>{{ registro.concluido_em or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="vazio">Ainda não existem registros no histórico.</p>
+        {% endif %}
+    </section>
+</main>
+
+<footer>
+    <p>Mini App de Fila de Atendimento • Python + Flask + SQLite</p>
+</footer>
+</body>
+</html>
